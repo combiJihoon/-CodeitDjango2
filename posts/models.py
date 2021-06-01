@@ -5,7 +5,8 @@ from django.db import models
 
 class Post(models.Model):
     # 글의 제목, 내용, 작성일, 마지막 수정일
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=50, unique=True, error_messages={
+                             'unique': '이미 있는 제목이네여 ㅋㅋㅋㅋ'})
     content = models.TextField()
     dt_created = models.DateTimeField(
         verbose_name="Date Created", auto_now_add=True)
