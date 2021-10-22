@@ -1,49 +1,56 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+# from django.views import View
+from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
+from django.urls import reverse
 from .models import Post
 from .forms import PostForm
-# Create your views here.
+from django.core.paginator import Paginator
+
+# def post_list(request):
+#     posts = Post.objects.all()
+#     context = {"posts": posts}
+#     return render(request, 'posts/post_list.html', context)
 
 
-def post_list(request):
-    posts = Post.objects.all()
-    context = {"posts": posts}
-    return render(request, 'posts/post_list.html', context)
+class PostListView(ListView):
+    model = Post
+    # 글을 최신 순으로 정렬 -> '-' 기호를 붙이면 가장 최신 순으로 정렬됨
+    # '-' 기호를 붙이지 않으면 오름차순으로 정렬됨
+    ordering = ['-dt_created']
+    # 몇 개 단위로 페이지를 나눌 것인지 결정
+    paginate_by = 6
 
 
-def post_detail(request, post_id):
-    post = Post.objects.get(id=post_id)
-    context = dict()
-    context["post"] = post
-    return render(request, 'posts/post_detail.html', context)
+class PostDetailView(DetailView):
+    model = Post
 
 
-def post_create(request):
-    if request.method == 'POST':
-        post_form = PostForm(request.POST)
-        if post_form.is_valid():
-            new_post = post_form.save()
-            return redirect('post-detail', post_id=new_post.id)
-    else:
-        post_form = PostForm()
-    return render(request, 'posts/post_form.html', {'form': post_form})
+class PostCreateView(CreateView):
+    model = Post  # 우리가 사용할 모델 할당
+    form_class = PostForm  # 우리가 사용할 폼
+
+    def get_success_url(self):
+        # 이동할 url
+        # kwargs = keyword argument의 약자로, 사전형으로 키워드를 이용해서 값을 전달시 사용
+        # self.objects.id를 통해 새로 생성된 post 데이터 객체에 접근할 수 있다.
+        return reverse('post-detail', kwargs={'pk': self.object.id})
 
 
-def post_update(request, post_id):
-    post = Post.objects.get(id=post_id)
-    if request.method == 'POST':
-        post_form = PostForm(request.POST, instance=post)
-        if post_form.is_valid():
-            post_form.save()
-            return redirect('post-detail', post_id=post.id)
-    else:
-        post_form = PostForm(instance=post)
-    return render(request, 'posts/post_form.html', {'form': post_form})
+class PostUpdateView(UpdateView):
+    model = Post
+    form_class = PostForm()
+
+    # postform의 유효성 검증 통과시 이동할 url
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.id})
 
 
-def post_delete(request, post_id):
-    post = Post.objects.get(id=post_id)
-    if request.method == 'POST':
-        post.delete()
-        return redirect('post-list')
-    else:
-        return render(request, 'posts/post_confirm_delete.html', {'post': post})
+class PostDeleteView(DeleteView):
+    model = Post
+
+    def get_success_url(self):
+        return reverse('post-list')
+
+
+def index(request):
+    return redirect('post-list')
