@@ -1,15 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-# from django.views import View
-from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
+from django.views.generic import (
+    CreateView, ListView, DetailView, UpdateView, DeleteView, RedirectView
+)
 from django.urls import reverse
 from .models import Post
 from .forms import PostForm
 from django.core.paginator import Paginator
-
-# def post_list(request):
-#     posts = Post.objects.all()
-#     context = {"posts": posts}
-#     return render(request, 'posts/post_list.html', context)
 
 
 class PostListView(ListView):
@@ -54,3 +50,7 @@ class PostDeleteView(DeleteView):
 
 def index(request):
     return redirect('post-list')
+
+
+class IndexRedirectView(RedirectView):
+    pattern_name = 'post-list'
